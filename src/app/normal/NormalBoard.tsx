@@ -1,7 +1,32 @@
 "use client"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { socket } from './socket';
 
 const NormalBoard = () => {
+  useEffect(() => {
+    function onConnect() {
+      console.log('connected')
+    }
+
+    function onDisconnect() {
+      console.log('disconnected')
+    }
+
+    function onMessage(value:any) {
+      console.log('askdfasd message', value)
+    }
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('message', onMessage);
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('message', onMessage);
+    };
+  }, []);
+
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [gameBoard, setGameBoard] = useState([
     ["", "", ""],
