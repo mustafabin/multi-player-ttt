@@ -15,7 +15,6 @@ export default function Home() {
         src='/hero.svg'
         width={300}
         height={300}
-        layout='responsive'
       />
       <div className='Home-navbar'>
         <Link href='/normal'>Normal</Link>
