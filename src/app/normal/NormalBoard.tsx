@@ -1,22 +1,7 @@
 "use client"
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 
-let socket: WebSocket | null = null
 const NormalBoard = () => {
-  useEffect(() => {
-    if(socket === null){
-      socket = new WebSocket("ws://localhost:3030/websocket")
-      socket.onclose = event => console.log("closed",event)
-      socket.onopen = event => console.log("Connected to server ", event)
-      socket.onmessage = event => console.log("message", event.data)
-      socket.onerror = event => console.log("error", event)
-    }
-
-    return () => {
-      socket?.close()
-      socket = null
-    }
-  }, [])
 
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [gameBoard, setGameBoard] = useState([
@@ -34,7 +19,7 @@ const NormalBoard = () => {
     return board.every((row) => row.every((cell) => cell !== ""))
   }
   let playMove = (row: number, col: number) => {
-    socket?.send("PLAY")
+    // socket?.send("PLAY")
     if (gameBoard[row][col] === "" && winner === "") {
       const newBoard = deepCopyBoard(gameBoard)
       newBoard[row][col] = turn
