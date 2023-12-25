@@ -1,0 +1,90 @@
+// CREATE VAR
+$CELL_WIDTH: 50px;
+$MINI_BOARD_GAP: 1rem;
+// change variables after certain screen sizes
+.Hard{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 3rem;
+  &-board{
+    display: flex;
+    width: calc(calc(calc($CELL_WIDTH * 3) + $MINI_BOARD_GAP * 2) * 3);
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    &-mini-board{
+      margin: $MINI_BOARD_GAP;
+      width: calc($CELL_WIDTH * 3);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+
+      &-row{
+        // width: calc($CELL_WIDTH * 3);
+        display: flex;
+        &-cell{
+          width: $CELL_WIDTH;
+          height: $CELL_WIDTH;
+          border: 1px solid rgba(0, 0, 0, 0.643);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.5rem;
+          font-weight: bold;
+        }
+      }
+    }
+  }
+  &-active-grid{
+    background-image: radial-gradient(at 50% 50%, rgba(0, 0, 0, 0) 25px, rgba(49, 255, 30, 0.2) 70%, rgba(49, 255, 30, 0.15) 40%);
+  }
+}
+
+
+// For smaller screens
+@media (max-width: 600px) {
+  $CELL_WIDTH: 40px; // Adjusted variable for smaller screens
+  $MINI_BOARD_GAP: 0.5rem; // Adjusted variable for smaller screens
+
+  // Repeat the styles that depend on these variables
+  .Hard-board {
+    width: calc(calc(calc($CELL_WIDTH * 3) + $MINI_BOARD_GAP * 2) * 3);
+
+    &-mini-board {
+      margin: $MINI_BOARD_GAP;
+      width: calc($CELL_WIDTH * 3);
+
+      &-row {
+        &-cell {
+          width: $CELL_WIDTH;
+          height: $CELL_WIDTH;
+        }
+      }
+    }
+  }
+}
+
+// For larger screens
+@media (min-width: 1200px) {
+  $CELL_WIDTH: 70px; // Adjusted variable for larger screens
+  $MINI_BOARD_GAP: 1.25rem; // Adjusted variable for larger screens
+
+  // Repeat the styles that depend on these variables
+  .Hard-board {
+    width: calc(calc(calc($CELL_WIDTH * 3) + $MINI_BOARD_GAP * 2) * 3);
+
+    &-mini-board {
+      margin: $MINI_BOARD_GAP;
+      width: calc($CELL_WIDTH * 3);
+
+      &-row {
+        &-cell {
+          width: $CELL_WIDTH;
+          height: $CELL_WIDTH;
+        }
+      }
+    }
+  }
+}

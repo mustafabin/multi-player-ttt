@@ -2,6 +2,7 @@
 import Swal from "sweetalert2"
 import { useEffect, useRef, useState } from "react"
 import "../../styles/normal.scss"
+import Link from "next/link"
 
 let socket: WebSocket | null = null
 const MulitplayerNormal = () => {
@@ -70,12 +71,16 @@ const MulitplayerNormal = () => {
       JSON.stringify({
         coords: [row, col],
         player: playerRef.current,
+        type: "normal"
       })
     )
   }
   return (
     // div with tail wind classes that is a flex div
     <div className='MulitplayerNormal'>
+      <div className='MulitplayerNormal-nav'>
+        <Link href='/'>Home</Link>
+      </div>
       <div className='Normal-board'>
         {gameBoard.map((row, i) => (
           <div className='Normal-board-row' key={i}>

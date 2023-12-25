@@ -1,7 +1,10 @@
+"use client"
 import Link from "next/link"
 import "../../styles/normal.scss"
 import NormalBoard from "./NormalBoard"
+import { useRouter } from "next/navigation"
 export default function Normal() {
+  const router = useRouter()
   return (
     <div className='Normal'>
       <div className='Normal-nav'>
@@ -12,7 +15,7 @@ export default function Normal() {
         <NormalBoard />
       </div>
       <div className='Normal-bottom'>
-        <button>Want to challenge a friend ?</button>
+        <button onClick={()=>router.push("/multi")}>Want to challenge a friend ?</button>
       </div>
     </div>
   )
