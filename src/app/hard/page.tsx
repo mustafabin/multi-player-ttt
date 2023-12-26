@@ -4,43 +4,8 @@ import { useRouter } from "next/navigation"
 import "../../styles/hard.scss"
 import { useState, useRef } from "react"
 import Swal from "sweetalert2"
-const createInitialBoard = () =>
-  Array(9)
-    .fill(null)
-    .map(() =>
-      Array(3)
-        .fill(null)
-        .map(() => Array(3).fill(""))
-    )
-const createInitialBoardStats = () => {
-  const stats = new Map()
-  for (let i = 0; i < 9; i++) {
-    stats.set(i, { winner: "", draw: false })
-  }
-  return stats
-}
-const checkWinner = (board: Array<Array<string>>, currentMove: Array<number>, player: string) => {
-  let [currentRow, currentCol] = currentMove
-  // check rows and columns
-  if (board[currentRow].every((cel: string) => cel === player)) return player
-  if (board.every((row: Array<string>) => row[currentCol] === player)) return player
-  // check diagonals
-  if (currentRow === currentCol && board.every((row: Array<string>, col: number) => row[col] === player)) return player
-  if (currentRow + currentCol === 2 && board.every((row: Array<string>, col: number) => row[2 - col] === player)) return player
-  // no winner
-  return ""
-}
-const convertMapToArray = (mapToConvert: Map<number, { winner: string; draw: boolean }>) => {
-  let convertedArray = Array(3)
-    .fill(null)
-    .map(() => Array(3).fill(null))
-  mapToConvert.forEach((value, key) => {
-    let row = Math.floor(key / 3)
-    let col = key % 3
-    convertedArray[row][col] = value.draw ? "-" : value.winner
-  })
-  return convertedArray
-}
+import { checkDraw, checkWinner, convertMapToArray, createInitialBoard, createInitialBoardStats } from "./utils"
+
 const Hard = () => {
   const router = useRouter()
   const [activeGrid, setActiveGrid] = useState(-1)
@@ -48,13 +13,8 @@ const Hard = () => {
   const gameBoardStats = useRef(createInitialBoardStats())
   const [currentTurn, setCurrentTurn] = useState("X")
   const [gameOver, setGameOver] = useState(false)
-  let restartGame = () => {
-    setGameOver(false)
-    setCurrentTurn("X")
-    setGameBoard(createInitialBoard())
-    setActiveGrid(-1)
-    gameBoardStats.current = createInitialBoardStats()
-  }
+
+
   let handleCellClick = (gridIndex: number, rowIndex: number, colIndex: number) => {
     // ? check if the game is over
     if (gameOver) return Swal.fire("Restart?", "Click to Clear Board", "question").then((response) => response.isConfirmed && restartGame())
@@ -64,44 +24,76 @@ const Hard = () => {
     let currentGameBoardStats = gameBoardStats.current
     if (
       gameBoard[gridIndex][rowIndex][colIndex] === "" &&
-      (currentGameBoardStats.get(gridIndex).winner !== "X" || currentGameBoardStats.get(gridIndex).winner !== "O")
+      currentGameBoardStats.get(gridIndex).winner === "" &&
+      currentGameBoardStats.get(gridIndex).draw === false
     ) {
-      //! winner logic
+      // deep copy gameboard
       let newBoard = gameBoard.map((grid) => grid.map((row) => row.map((cell) => cell)))
       newBoard[gridIndex][rowIndex][colIndex] = currentTurn
       setGameBoard(newBoard)
       setCurrentTurn(currentTurn === "X" ? "O" : "X")
 
-      let isWinner = checkWinner(newBoard[gridIndex], [rowIndex, colIndex], currentTurn)
-      if (isWinner) {
+      // ! checking if the mini board is won
+      let microWinner = checkWinner(newBoard[gridIndex], [rowIndex, colIndex], currentTurn)
+      if (microWinner) {
         console.log("Winner of a micro board ", gridIndex)
+
+        // ? updating and valdating the macro board when a mini board is won
         currentGameBoardStats.set(gridIndex, { winner: currentTurn, draw: false })
-        gameBoardStats.current = currentGameBoardStats
         let macroBoard = convertMapToArray(currentGameBoardStats)
         let macroWinner = checkWinner(macroBoard, [Math.floor(gridIndex / 3), gridIndex % 3], currentTurn)
-        console.log("Macro board", macroBoard)
-        console.log("Macro winner", macroWinner)
-        if (macroWinner) {
-          Swal.fire("GAME OVER", `${currentTurn} won the game click the button to restart`, "info").then(
-            (response) => response.isConfirmed && restartGame()
-          )
+        handleGameOver(macroWinner, macroBoard)
+        // ! check a macro board draw whenever a micro board is full or won over
+      } else if (checkDraw(newBoard[gridIndex])) {
+        currentGameBoardStats.set(gridIndex, { winner: "-", draw: true })
+        let macroDrawBoard = convertMapToArray(currentGameBoardStats)
+        console.log("Draw in micro board", gridIndex)
+        if (checkDraw(macroDrawBoard)) {
+          Swal.fire("GAME OVER", `Its a draw click the button to restart`, "info").then((response) => response.isConfirmed && restartGame())
           setGameOver(true)
         }
       }
       // check if the grid being set active to is already won or in a draw
-      // if it is then set the active grid to -1
-      let nextFocus = rowIndex * 3 + colIndex
+      calcFocusGrid(rowIndex,colIndex,currentGameBoardStats)
+    }
+  }
+
+
+  function calcFocusGrid (microRow:number, microCol:number,macroBoardStats:Map<any, any>){
+    let nextFocus = microRow * 3 + microCol
+    let macroCellStats = macroBoardStats.get(microRow * 3 + microCol)
       if (
-        currentGameBoardStats.get(nextFocus).draw ||
-        currentGameBoardStats.get(nextFocus).winner === "X" ||
-        currentGameBoardStats.get(nextFocus).winner === "O"
+        macroCellStats.draw ||
+        macroCellStats.winner === "X" ||
+        macroCellStats.winner === "O"
       ) {
         setActiveGrid(-1)
       } else {
         setActiveGrid(nextFocus)
       }
+  }
+  function restartGame () {
+    setGameOver(false)
+    setCurrentTurn("X")
+    setGameBoard(createInitialBoard())
+    setActiveGrid(-1)
+    gameBoardStats.current = createInitialBoardStats()
+  }
+
+  function handleGameOver (winner: string, board: Array<Array<string>>) {
+    if (winner) {
+      Swal.fire("GAME OVER", `${currentTurn} won the game click the button to restart`, "info").then(
+        (response) => response.isConfirmed && restartGame()
+      )
+      return setGameOver(true)
+    }
+    let isDraw = checkDraw(board)
+    if (isDraw) {
+      Swal.fire("GAME OVER", `Its a draw click the button to restart`, "info").then((response) => response.isConfirmed && restartGame())
+      return setGameOver(true)
     }
   }
+
   return (
     <div className='Hard'>
       <div className='Hard-nav'>
