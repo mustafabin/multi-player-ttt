@@ -5,6 +5,9 @@ import NormalBoard from "./NormalBoard"
 import { useRouter } from "next/navigation"
 export default function Normal() {
   const router = useRouter()
+  let handleClick = () => {
+
+  }
   return (
     <div className='Normal'>
       <div className='Normal-nav'>

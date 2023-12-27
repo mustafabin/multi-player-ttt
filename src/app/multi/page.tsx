@@ -3,9 +3,13 @@ import Swal from "sweetalert2"
 import { useEffect, useRef, useState } from "react"
 import "../../styles/normal.scss"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 
-let socket: WebSocket | null = null
 const MulitplayerNormal = () => {
+  const params = useSearchParams()
+  const socketRef = useRef<WebSocket | null>(null)
+  const hasConnectedRef = useRef(false)
+
   const [gameBoard, setGameBoard] = useState([
     ["", "", ""],
     ["", "", ""],
@@ -21,6 +25,7 @@ const MulitplayerNormal = () => {
   }
   let handleMessage = (event: MessageEvent) => {
     console.log("message", event.data)
+    return
     let data = JSON.parse(event.data)
     if (data["status"] === "error") return Swal.fire("Error", data["error"], "error")
     if (data["status"] === "connected") return (playerRef.current = data["player"])
@@ -47,31 +52,39 @@ const MulitplayerNormal = () => {
     }
   }
   useEffect(() => {
-    if (socket === null) {
-      socket = new WebSocket("ws://192.168.8.141:3030/websocket")
-      socket.onclose = (event) => console.log("closed", event)
-      socket.onopen = (event) => handleSocketOpen(event)
-      socket.onmessage = (event) => handleMessage(event)
-      socket.onerror = (event) => console.log("error", event)
+    const room = params.get("room")
+    if (hasConnectedRef.current) {
+      return
     }
+    socketRef.current = new WebSocket(`ws://192.168.8.141:3030/join?room=${room}`)
+    const socket = socketRef.current
+    socket.onclose = (event) => console.log("closed", event)
+    socket.onopen = handleSocketOpen
+    socket.onmessage = handleMessage
+    socket.onerror = () => Swal.fire("Error", "Error connecting to match", "error")
+    hasConnectedRef.current = true
 
     return () => {
       console.log("closing socket")
-      socket?.close()
-      socket = null
+      if(socket && socket.readyState === WebSocket.OPEN){
+        socket.close()
+        socketRef.current = null
+      }
     }
   }, [])
+
   let handleDrawReset = () => {}
 
   let handlePlayerWin = () => {}
 
   let playMove = (row: number, col: number) => {
+    let socket = socketRef.current
     if (socket === null) return Swal.fire("Error", "Lost connection to match", "error")
     socket.send(
       JSON.stringify({
         coords: [row, col],
         player: playerRef.current,
-        type: "normal"
+        type: "normal",
       })
     )
   }
