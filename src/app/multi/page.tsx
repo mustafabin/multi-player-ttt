@@ -62,7 +62,7 @@ const MulitplayerNormal = () => {
     if (hasConnectedRef.current) {
       return
     }
-    socketRef.current = new WebSocket(`ws://${API_URL}/join?room=${room}`)
+    socketRef.current = new WebSocket(`wss://${API_URL}/join?room=${room}`)
     const socket = socketRef.current
     socket.onclose = (event) => console.log("closed", event)
     socket.onopen = handleSocketOpen
