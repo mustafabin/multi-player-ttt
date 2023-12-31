@@ -94,6 +94,11 @@ const MulitplayerNormal = () => {
       <div className='MulitplayerNormal-nav'>
         <Link href='/'>Home</Link>
       </div>
+      <div className='MulitplayerNormal-top'>
+        <p>
+          You are <span style={{ color: player === "X" ? "red" : "blue" }}> {player}</span>
+        </p>
+      </div>
       <div className='Normal-board'>
         {gameBoard.map((row, i) => (
           <div className='Normal-board-row' key={i}>
