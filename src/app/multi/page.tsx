@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import "../../styles/normal.scss"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { Player, ResultType } from "../hard/utils"
 
 const MulitplayerNormal = () => {
   const params = useSearchParams()
@@ -19,38 +20,43 @@ const MulitplayerNormal = () => {
     isDraw: false,
     winner: "",
   })
-  const playerRef = useRef<"X" | "O">("X")
+  const [player, setPlayer] = useState<Player | undefined>(undefined)
+  const [currentTurn, setCurrentTurn] = useState<Player>("X")
   let handleSocketOpen = (event: Event) => {
     console.log("Connected to server ", event)
   }
   let handleMessage = (event: MessageEvent) => {
-    console.log("message", event.data)
-    return
-    let data = JSON.parse(event.data)
-    if (data["status"] === "error") return Swal.fire("Error", data["error"], "error")
-    if (data["status"] === "connected") return (playerRef.current = data["player"])
-    // setGameBoard(data["board"])
-    if (data["status"] === "update") {
-      setGameBoard(data["board"])
-      if (data["winner"]) {
-        console.log("winner is", data["winner"], "player is", playerRef.current)
-        Swal.fire(
-          playerRef.current === data["winner"] ? "Winner" : "You Lost",
-          data["winner"] + " won the game",
-          playerRef.current === data["winner"] ? "success" : "error"
-        ).then((confirm) => {
-          console.log("confirm", confirm)
-          setGameBoard([
-            ["", "", ""],
-            ["", "", ""],
-            ["", "", ""],
-          ])
-        })
-        return
-      }
-      if (data["draw"]) return setIsOver({ isDraw: true, winner: "" })
+    // todo chat feature
+    let data = JSON.parse(event.data) as ResultType
+    switch (data.status) {
+      case "update":
+        handleWebsocketUpdate(data)
+        break
+      case "assign":
+        setPlayer(data.player)
+        handleWebsocketUpdate(data)
+        break
+      case "chat":
+        break
+      case "error":
+        Swal.fire("Error", data.error, "error")
+        break
+      default:
+        break
     }
   }
+  let handleWebsocketUpdate = (data: ResultType) => {
+    setGameBoard(data.board)
+    setCurrentTurn(data.currentTurn)
+    console.log("data", data)
+    setIsOver({ isDraw: data.isDraw, winner: data.winner })
+  }
+  useEffect(() => {
+    if (!isOver.isDraw && isOver.winner === "") return
+    let titleText = player === isOver.winner ? "Winner" : "You Lost"
+    if (isOver.isDraw) titleText = "Its a draw"
+    Swal.fire(titleText, "", isOver.isDraw ? "info" : player === isOver.winner ? "success" : "error")
+  }, [isOver])
   useEffect(() => {
     const room = params.get("room")
     if (hasConnectedRef.current) {
@@ -65,31 +71,25 @@ const MulitplayerNormal = () => {
     hasConnectedRef.current = true
 
     return () => {
-      console.log("closing socket")
-      if(socket && socket.readyState === WebSocket.OPEN){
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        console.log("closing socket")
         socket.close()
         socketRef.current = null
       }
     }
   }, [])
-
-  let handleDrawReset = () => {}
-
-  let handlePlayerWin = () => {}
-
-  let playMove = (row: number, col: number) => {
+  let sendWebsocketMessage = (data: any) => {
     let socket = socketRef.current
     if (socket === null) return Swal.fire("Error", "Lost connection to match", "error")
-    socket.send(
-      JSON.stringify({
-        coords: [row, col],
-        player: playerRef.current,
-        type: "normal",
-      })
-    )
+    socket.send(JSON.stringify(data))
+  }
+  let playMove = (row: number, col: number) => {
+    sendWebsocketMessage({ messageType: "game", actionType: "move", coords: [row, col] })
+  }
+  let handleReset = () => {
+    sendWebsocketMessage({ messageType: "game", actionType: "reset" })
   }
   return (
-    // div with tail wind classes that is a flex div
     <div className='MulitplayerNormal'>
       <div className='MulitplayerNormal-nav'>
         <Link href='/'>Home</Link>
@@ -105,11 +105,9 @@ const MulitplayerNormal = () => {
           </div>
         ))}
       </div>
-
-      {isOver.isDraw && (
+      {(isOver.isDraw || isOver.winner) && (
         <div className='Normal-board-bottom flex-col p-2'>
-          <h1>Its a draw</h1>
-          <button onClick={handleDrawReset}>Play Again</button>
+          <button onClick={handleReset}>Play Again</button>
         </div>
       )}
     </div>
