@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import "../../styles/normal.scss"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Player, ResultType } from "../hard/utils"
+import { API_URL, Player, ResultType } from "../hard/utils"
 
 const MulitplayerNormal = () => {
   const params = useSearchParams()
@@ -62,7 +62,7 @@ const MulitplayerNormal = () => {
     if (hasConnectedRef.current) {
       return
     }
-    socketRef.current = new WebSocket(`ws://192.168.8.141:3030/join?room=${room}`)
+    socketRef.current = new WebSocket(`ws://${API_URL}/join?room=${room}`)
     const socket = socketRef.current
     socket.onclose = (event) => console.log("closed", event)
     socket.onopen = handleSocketOpen
@@ -115,6 +115,7 @@ const MulitplayerNormal = () => {
           <button onClick={handleReset}>Play Again</button>
         </div>
       )}
+      <h1 className="Normal-code">ROOM CODE: <span>{params.get("room")}</span></h1>
     </div>
   )
 }

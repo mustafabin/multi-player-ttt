@@ -55,5 +55,5 @@ export type ResultType = {
   currentTurn: Player
 }
 export type roomTypes = "normal" | "hard"
-
+export const API_URL = "192.168.8.141:3030"
 export { createInitialBoard, createInitialBoardStats, checkDraw, convertMapToArray, checkWinner }
