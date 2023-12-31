@@ -102,7 +102,7 @@ const Hard = () => {
       <p>9D ULTIMATE</p>
       <p>{activeGrid === -1 ? "Click on any cell on the board" : "Focus on the highlighted grid"}</p>
       <p>
-        <span style={{ color: currentTurn === "X" ? "red" : "blue" }}> {currentTurn}</span>'s turn
+        <span style={{ color: currentTurn === "X" ? "red" : "blue" }}> {currentTurn + "'"}</span>s turn
       </p>
       <div className='Hard-board'>
         {gameBoard.map((grid, i) => (
