@@ -2,9 +2,9 @@
 import Swal from "sweetalert2"
 import { useEffect, useRef, useState } from "react"
 import "../../styles/normal.scss"
-import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { API_URL, Player, ResultType } from "../hard/utils"
+import Board from "./Board"
 
 const MulitplayerNormal = () => {
   const params = useSearchParams()
@@ -62,7 +62,7 @@ const MulitplayerNormal = () => {
     if (hasConnectedRef.current) {
       return
     }
-    socketRef.current = new WebSocket(`wss://${API_URL}/join?room=${room}`)
+    socketRef.current = new WebSocket(`ws://${API_URL}/join?room=${room}`)
     const socket = socketRef.current
     socket.onclose = (event) => console.log("closed", event)
     socket.onopen = handleSocketOpen
@@ -83,40 +83,16 @@ const MulitplayerNormal = () => {
     if (socket === null) return Swal.fire("Error", "Lost connection to match", "error")
     socket.send(JSON.stringify(data))
   }
-  let playMove = (row: number, col: number) => {
-    sendWebsocketMessage({ messageType: "game", actionType: "move", coords: [row, col] })
-  }
-  let handleReset = () => {
-    sendWebsocketMessage({ messageType: "game", actionType: "reset" })
-  }
+
   return (
-    <div className='MulitplayerNormal'>
-      <div className='MulitplayerNormal-nav'>
-        <Link href='/'>Home</Link>
-      </div>
-      <div className='MulitplayerNormal-top'>
-        <p>
-          You are <span style={{ color: player === "X" ? "red" : "blue" }}> {player}</span>
-        </p>
-      </div>
-      <div className='Normal-board'>
-        {gameBoard.map((row, i) => (
-          <div className='Normal-board-row' key={i}>
-            {row.map((cell, j) => (
-              <div className='Normal-board-cell' key={j} onClick={() => playMove(i, j)}>
-                <span style={{ color: cell === "X" ? "red" : "blue" }}> {cell}</span>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-      {(isOver.isDraw || isOver.winner) && (
-        <div className='Normal-board-bottom flex-col p-2'>
-          <button onClick={handleReset}>Play Again</button>
-        </div>
-      )}
-      <h1 className="Normal-code">ROOM CODE: <span>{params.get("room")}</span></h1>
-    </div>
+    <Board
+      websocketHandler={sendWebsocketMessage}
+      roomCode={params.get("room")}
+      isOver={isOver}
+      player={player}
+      currentTurn={currentTurn}
+      gameBoard={gameBoard}
+    />
   )
 }
 export default MulitplayerNormal

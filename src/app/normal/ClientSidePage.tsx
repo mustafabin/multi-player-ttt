@@ -10,7 +10,7 @@ export default function ClientSidePage() {
 
   let handleChallenge = async () => {
     try {
-      let response = await fetch(`https://${API_URL}/create`)
+      let response = await fetch(`http://${API_URL}/create`)
       let data = await response.json()
       console.log("creating room", data)
       let { roomID } = data
