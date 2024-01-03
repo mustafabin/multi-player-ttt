@@ -4,10 +4,9 @@ import { useRouter } from "next/navigation"
 import "../../styles/hard.scss"
 import { useState, useRef } from "react"
 import Swal from "sweetalert2"
-import { checkDraw, checkWinner, convertMapToArray, createInitialBoard, createInitialBoardStats } from "./utils"
+import { API_URL, checkDraw, checkWinner, convertMapToArray, createInitialBoard, createInitialBoardStats } from "./utils"
 
 const Hard = () => {
-  const router = useRouter()
   const [activeGrid, setActiveGrid] = useState(-1)
   const [gameBoard, setGameBoard] = useState(createInitialBoard())
   const gameBoardStats = useRef(createInitialBoardStats())
@@ -54,25 +53,20 @@ const Hard = () => {
         }
       }
       // check if the grid being set active to is already won or in a draw
-      calcFocusGrid(rowIndex,colIndex,currentGameBoardStats)
+      calcFocusGrid(rowIndex, colIndex, currentGameBoardStats)
     }
   }
 
-
-  function calcFocusGrid (microRow:number, microCol:number,macroBoardStats:Map<any, any>){
+  function calcFocusGrid(microRow: number, microCol: number, macroBoardStats: Map<any, any>) {
     let nextFocus = microRow * 3 + microCol
     let macroCellStats = macroBoardStats.get(microRow * 3 + microCol)
-      if (
-        macroCellStats.draw ||
-        macroCellStats.winner === "X" ||
-        macroCellStats.winner === "O"
-      ) {
-        setActiveGrid(-1)
-      } else {
-        setActiveGrid(nextFocus)
-      }
+    if (macroCellStats.draw || macroCellStats.winner === "X" || macroCellStats.winner === "O") {
+      setActiveGrid(-1)
+    } else {
+      setActiveGrid(nextFocus)
+    }
   }
-  function restartGame () {
+  function restartGame() {
     setGameOver(false)
     setCurrentTurn("X")
     setGameBoard(createInitialBoard())
@@ -80,7 +74,7 @@ const Hard = () => {
     gameBoardStats.current = createInitialBoardStats()
   }
 
-  function handleGameOver (winner: string, board: Array<Array<string>>) {
+  function handleGameOver(winner: string, board: Array<Array<string>>) {
     if (winner) {
       Swal.fire("GAME OVER", `${currentTurn} won the game click the button to restart`, "info").then(
         (response) => response.isConfirmed && restartGame()
@@ -109,13 +103,12 @@ const Hard = () => {
           <DisplayMiniGrid grid={grid} index={i} key={i} activeGrid={activeGrid} handleCellClick={handleCellClick} />
         ))}
       </div>
-      <div className='Hard-bottom'>
-        <button onClick={() => router.push("/multi")}>Want to challenge a friend ?</button>
-      </div>
+      <BottomButtons />
     </div>
   )
 }
 export default Hard
+
 const DisplayMiniGrid = ({ grid, index, activeGrid, handleCellClick }: DisplayMiniGridProps) => {
   return (
     <div className={`Hard-board-mini-board  ${activeGrid === index && "Hard-active-grid"}`}>
@@ -128,6 +121,41 @@ const DisplayMiniGrid = ({ grid, index, activeGrid, handleCellClick }: DisplayMi
           ))}
         </div>
       ))}
+    </div>
+  )
+}
+const BottomButtons = () => {
+  const router = useRouter()
+  let handleChallenge = async () => {
+    try {
+      let response = await fetch(`http://${API_URL}/create?type=hard`)
+      let data = await response.json()
+      console.log("creating room", data)
+      let { roomID } = data
+      console.log(roomID)
+      router.push(`/multi/hard?room=${roomID}`)
+    } catch (error) {
+      Swal.fire("Error", "Couldnt generate room ID", "error")
+    }
+  }
+  let handleJoin = () => {
+    Swal.fire({
+      title: "Enter Room ID",
+      input: "text",
+      inputLabel: "Room ID",
+      inputPlaceholder: "Enter Room ID",
+      showCancelButton: true,
+    }).then((response) => {
+      if (response.isConfirmed) {
+        let roomID = response.value
+        router.push(`/multi?room=${roomID}`)
+      }
+    })
+  }
+  return (
+    <div className='Hard-bottom'>
+      <button onClick={handleChallenge}>Challenge a friend ?</button>
+      <button onClick={handleJoin}>Have a code ?</button>
     </div>
   )
 }
