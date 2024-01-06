@@ -18,7 +18,7 @@ const checkDraw = (board: Array<Array<string>>) => {
   return board.every((row) => row.every((cell) => cell !== ""))
 }
 
-const convertMapToArray = (mapToConvert: Map<number, { winner: string; draw: boolean }>) => {
+const convertMapToBoard = (mapToConvert: Map<number, { winner: string; draw: boolean }>) => {
   let convertedArray = Array(3)
     .fill(null)
     .map(() => Array(3).fill(null))
@@ -55,5 +55,5 @@ export type ResultType = {
   currentTurn: Player
 }
 export type roomTypes = "normal" | "hard"
-export const API_URL = "192.168.8.141:3030"
-export { createInitialBoard, createInitialBoardStats, checkDraw, convertMapToArray, checkWinner }
+export const API_URL = "http://192.168.8.141:3030"
+export { createInitialBoard, createInitialBoardStats, checkDraw, convertMapToBoard, checkWinner }

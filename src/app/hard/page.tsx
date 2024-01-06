@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import "../../styles/hard.scss"
 import { useState, useRef } from "react"
 import Swal from "sweetalert2"
-import { API_URL, checkDraw, checkWinner, convertMapToArray, createInitialBoard, createInitialBoardStats } from "./utils"
+import { API_URL, checkDraw, checkWinner, convertMapToBoard, createInitialBoard, createInitialBoardStats } from "./utils"
 
 const Hard = () => {
   const [activeGrid, setActiveGrid] = useState(-1)
@@ -12,7 +12,6 @@ const Hard = () => {
   const gameBoardStats = useRef(createInitialBoardStats())
   const [currentTurn, setCurrentTurn] = useState("X")
   const [gameOver, setGameOver] = useState(false)
-
 
   let handleCellClick = (gridIndex: number, rowIndex: number, colIndex: number) => {
     // ? check if the game is over
@@ -39,13 +38,13 @@ const Hard = () => {
 
         // ? updating and valdating the macro board when a mini board is won
         currentGameBoardStats.set(gridIndex, { winner: currentTurn, draw: false })
-        let macroBoard = convertMapToArray(currentGameBoardStats)
+        let macroBoard = convertMapToBoard(currentGameBoardStats)
         let macroWinner = checkWinner(macroBoard, [Math.floor(gridIndex / 3), gridIndex % 3], currentTurn)
         handleGameOver(macroWinner, macroBoard)
         // ! check a macro board draw whenever a micro board is full or won over
       } else if (checkDraw(newBoard[gridIndex])) {
         currentGameBoardStats.set(gridIndex, { winner: "-", draw: true })
-        let macroDrawBoard = convertMapToArray(currentGameBoardStats)
+        let macroDrawBoard = convertMapToBoard(currentGameBoardStats)
         console.log("Draw in micro board", gridIndex)
         if (checkDraw(macroDrawBoard)) {
           Swal.fire("GAME OVER", `Its a draw click the button to restart`, "info").then((response) => response.isConfirmed && restartGame())
@@ -100,7 +99,14 @@ const Hard = () => {
       </p>
       <div className='Hard-board'>
         {gameBoard.map((grid, i) => (
-          <DisplayMiniGrid grid={grid} index={i} key={i} activeGrid={activeGrid} handleCellClick={handleCellClick} />
+          <DisplayMiniGrid
+            macroBoardMap={gameBoardStats.current}
+            grid={grid}
+            index={i}
+            key={i}
+            activeGrid={activeGrid}
+            handleCellClick={handleCellClick}
+          />
         ))}
       </div>
       <BottomButtons />
@@ -109,13 +115,18 @@ const Hard = () => {
 }
 export default Hard
 
-const DisplayMiniGrid = ({ grid, index, activeGrid, handleCellClick }: DisplayMiniGridProps) => {
+const DisplayMiniGrid = ({ grid, index, activeGrid, handleCellClick, macroBoardMap }: DisplayMiniGridProps) => {
   return (
-    <div className={`Hard-board-mini-board  ${activeGrid === index && "Hard-active-grid"}`}>
+    <div className='Hard-board-mini-board'>
       {grid.map((row, i) => (
         <div className='Hard-board-mini-board-row' key={i}>
           {row.map((cell, j) => (
-            <div className='Hard-board-mini-board-row-cell' key={j} onClick={() => handleCellClick(index, i, j)}>
+            <div
+              className={`Hard-board-mini-board-row-cell ${activeGrid === index && "Hard-active-grid"} ${macroBoardMap.get(index)?.winner === "X" ? "Cell-Red" : macroBoardMap.get(index)?.winner === "O"&&"Cell-Blue"} ${
+                macroBoardMap.get(index)?.draw && "Cell-Draw"
+              }`}
+              key={j}
+              onClick={() => handleCellClick(index, i, j)}>
               <span style={{ color: cell === "X" ? "red" : "blue" }}> {cell}</span>
             </div>
           ))}
@@ -164,4 +175,5 @@ interface DisplayMiniGridProps {
   index: number
   activeGrid: number
   handleCellClick: (gridIndex: number, rowIndex: number, colIndex: number) => void
+  macroBoardMap: Map<any, any>
 }

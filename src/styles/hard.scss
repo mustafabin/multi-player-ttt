@@ -38,7 +38,8 @@ $MINI_BOARD_GAP: 1rem;
     }
   }
   &-active-grid{
-    background-image: radial-gradient(at 50% 50%, rgba(0, 0, 0, 0) 25px, rgba(49, 255, 30, 0.2) 70%, rgba(49, 255, 30, 0.15) 40%);
+    background-color: rgba(49, 255, 30, 0.283);
+    border: 1px solid rgba(30, 156, 18, 0.907);
   }
   &-bottom{
     & button {
@@ -83,7 +84,20 @@ $MINI_BOARD_GAP: 1rem;
     }
   }
 }
-
+.Cell{
+  &-Red{
+    background-color: rgba(255, 103, 103, 0.56);
+    border: 1px solid rgba(239, 0, 0, 0.25);
+  }
+  &-Blue{
+    background-color: rgba(130, 130, 255, 0.56);
+    border: 1px solid rgba(0, 0, 255, 0.25);
+  }
+  &-Draw{
+    background-color: rgba(128, 128, 128, 0.56);
+    border: 1px solid rgba(128, 128, 128, 0.56);
+  }
+}
 
 // For smaller screens
 @media (max-width: 600px) {
