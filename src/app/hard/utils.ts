@@ -42,17 +42,24 @@ const checkWinner = (board: Array<Array<string>>, currentMove: Array<number>, pl
   return ""
 }
 export type Player = "X" | "O"
-export type GameState = string[][]
-export type HardGameState = string[][][]
+export type GameState = any[][]
+export type HardGameState = any[][][]
 export type Coords = [number, number]
 export type ResultType = {
   status: "" | "error" | "update" | "chat" | "assign"
   error: string
   winner: string
-  board: GameState
+  board: GameState | HardGameState
   isDraw: boolean
   player: Player | undefined
   currentTurn: Player
+  gameBoardStatsArray?: [
+    number,
+    {
+      winner: string
+      draw: boolean
+    }
+  ][]
 }
 export type roomTypes = "normal" | "hard"
 export const API_URL = "192.168.8.141:3030"
