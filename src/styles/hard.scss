@@ -83,6 +83,12 @@ $MINI_BOARD_GAP: 1rem;
       font-size: 1.4rem;
     }
   }
+  &-instructions{
+    font-weight: 800 !important;
+    text-decoration: underline;
+    font-size: 1.3rem !important;
+    color: #8a3e08;
+  }
 }
 .Cell{
   &-Red{

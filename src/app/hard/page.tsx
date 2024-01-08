@@ -92,8 +92,7 @@ const Hard = () => {
       <div className='Hard-nav'>
         <Link href='/'>Home</Link>
       </div>
-      <p>9D ULTIMATE</p>
-      <p>{activeGrid === -1 ? "Click on any cell on the board" : "Focus on the highlighted grid"}</p>
+      <p className='Hard-instructions'>{activeGrid === -1 ? "Click on any cell on the board" : "Focus on the highlighted grid"}</p>
       <p>
         <span style={{ color: currentTurn === "X" ? "red" : "blue" }}> {currentTurn + "'"}</span>s turn
       </p>
@@ -122,9 +121,9 @@ const DisplayMiniGrid = ({ grid, index, activeGrid, handleCellClick, macroBoardM
         <div className='Hard-board-mini-board-row' key={i}>
           {row.map((cell, j) => (
             <div
-              className={`Hard-board-mini-board-row-cell ${activeGrid === index && "Hard-active-grid"} ${macroBoardMap.get(index)?.winner === "X" ? "Cell-Red" : macroBoardMap.get(index)?.winner === "O"&&"Cell-Blue"} ${
-                macroBoardMap.get(index)?.draw && "Cell-Draw"
-              }`}
+              className={`Hard-board-mini-board-row-cell ${activeGrid === index && "Hard-active-grid"} ${
+                macroBoardMap.get(index)?.winner === "X" ? "Cell-Red" : macroBoardMap.get(index)?.winner === "O" && "Cell-Blue"
+              } ${macroBoardMap.get(index)?.draw && "Cell-Draw"}`}
               key={j}
               onClick={() => handleCellClick(index, i, j)}>
               <span style={{ color: cell === "X" ? "red" : "blue" }}> {cell}</span>

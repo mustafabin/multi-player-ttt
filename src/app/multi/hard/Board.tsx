@@ -2,9 +2,7 @@ import { SweetAlertResult } from "sweetalert2"
 
 const Board = ({ gameBoard, activeGrid, websocketHandler }: BoardProps) => {
   let handleCellClick = (gridIndex: number, rowIndex: number, colIndex: number) => {
-    console.log("gridIndex", gridIndex)
-    console.log("rowIndex", rowIndex)
-    console.log("colIndex", colIndex)
+    websocketHandler({ messageType: "game", actionType: "move", coords: [rowIndex, colIndex], gridIndex })
   }
 
   return (

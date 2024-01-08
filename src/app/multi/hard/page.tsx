@@ -1,36 +1,78 @@
 "use client"
 import Link from "next/link"
 import "../../../styles/hard.scss"
-import { createInitialBoard, createInitialBoardStats } from "@/app/hard/utils"
+import { API_URL, ResultType, createInitialBoard, createInitialBoardStats } from "@/app/hard/utils"
 import { useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Board from "./Board"
+import Swal from "sweetalert2"
 const Hard = () => {
   const gameBoardStats = useRef(createInitialBoardStats())
+  const socketRef = useRef<WebSocket | null>(null)
+  const hasConnectedRef = useRef(false)
   const [currentTurn, setCurrentTurn] = useState("X")
   const [gameOver, setGameOver] = useState(false)
   const [activeGrid, setActiveGrid] = useState(-1)
   const [gameBoard, setGameBoard] = useState(createInitialBoard())
   const params = useSearchParams()
 
+  let handleWebsocketUpdate = (data: ResultType) => {
+    console.log("update", data)
+  }
+  let handleMessage = (event: MessageEvent) => {
+    let data = JSON.parse(event.data) as ResultType
+    switch (data.status) {
+      case "update":
+        handleWebsocketUpdate(data)
+        break
+      case "assign":
+        console.log("assign",data)
+        break
+      case "chat":
+        break
+      case "error":
+        Swal.fire("Error", data.error, "error")
+        break
+      default:
+        break
+    }
+  }
   useEffect(() => {
     const room = params.get("room")
-    console.log("room", room)
-  }, [])
-  let handleMessage = (data:any) => {
+    if (hasConnectedRef.current) {
+      return
+    }
+    socketRef.current = new WebSocket(`ws://${API_URL}/join?room=${room}`)
+    const socket = socketRef.current
+    socket.onmessage = handleMessage
+    socket.onclose = (event) => console.log("closed", event)
+    socket.onopen = () => console.log("connected to server")
+    socket.onerror = () => Swal.fire("Error", "Error connecting to match", "error")
+    hasConnectedRef.current = true
 
+    return () => {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        console.log("closing socket")
+        socket.close()
+        socketRef.current = null
+      }
+    }
+  }, [])
+  let websocketHandler = (data:any) => {
+    let socket = socketRef.current
+    if (socket === null) return Swal.fire("Error", "Lost connection to match", "error")
+    socket.send(JSON.stringify(data))
   }
   return (
     <div className='Hard'>
       <div className='Hard-nav'>
         <Link href='/'>Home</Link>
       </div>
-      <p>9D ULTIMATE</p>
-      <p>{activeGrid === -1 ? "Click on any cell on the board" : "Focus on the highlighted grid"}</p>
+      <p className='Hard-instructions'>{activeGrid === -1 ? "Click on any cell on the board" : "Focus on the highlighted grid"}</p>
       <p>
         <span style={{ color: currentTurn === "X" ? "red" : "blue" }}> {currentTurn + "'"}</span>s turn
       </p>
-      <Board gameBoard={gameBoard} activeGrid={activeGrid} websocketHandler={handleMessage}/>
+      <Board gameBoard={gameBoard} activeGrid={activeGrid} websocketHandler={websocketHandler} />
     </div>
   )
 }
