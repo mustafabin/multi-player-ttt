@@ -61,7 +61,7 @@ const Hard = () => {
     if (hasConnectedRef.current) {
       console.log("already connected")
     } else {
-      socketRef.current = new WebSocket(`ws://${API_URL}/join?room=${room}`)
+      socketRef.current = new WebSocket(`wss://${API_URL}/join?room=${room}`)
       const socket = socketRef.current
       socket.onmessage = handleMessage
       socket.onclose = (event) => console.log("closed", event)
