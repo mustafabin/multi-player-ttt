@@ -60,6 +60,7 @@ export type ResultType = {
       draw: boolean
     }
   ][]
+  activeGrid?: number
 }
 export type roomTypes = "normal" | "hard"
 export const API_URL = "192.168.8.141:3030"

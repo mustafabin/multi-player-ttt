@@ -12,18 +12,28 @@ const Hard = () => {
   const socketRef = useRef<WebSocket | null>(null)
   const hasConnectedRef = useRef(false)
   const [currentTurn, setCurrentTurn] = useState("X")
-  const [gameOver, setGameOver] = useState(false)
+  const [gameOver, setGameOver] = useState({
+    winner: "",
+    tie: false,
+  })
   const [activeGrid, setActiveGrid] = useState(-1)
   const [gameBoard, setGameBoard] = useState(createInitialBoard())
   const [player, setPlayer] = useState<Player>("X")
   const params = useSearchParams()
 
   let handleWebsocketUpdate = (data: ResultType) => {
-    let newGameStats = new Map(data.gameBoardStatsArray)
-    console.log("update", data)
-    console.log("new map", newGameStats)
-    setGameBoard(data.board)
     setCurrentTurn(data.currentTurn)
+    setGameBoard(data.board)
+    if (typeof data.activeGrid === "number") setActiveGrid(data.activeGrid)
+    let newGameStats = new Map(data.gameBoardStatsArray)
+    gameBoardStats.current = newGameStats
+    if (data.winner || data.isDraw) {
+      setGameOver({
+        winner: data.winner,
+        tie: data.isDraw,
+      })
+      return Swal.fire("Game Over", data.isDraw ? "Tie" : `${data.winner} won`, data.isDraw ? "info" : "success")
+    }
   }
   let handleMessage = (event: MessageEvent) => {
     let data = JSON.parse(event.data) as ResultType
@@ -34,10 +44,8 @@ const Hard = () => {
       case "assign":
         console.log("assign", data)
         if (!data.player) return Swal.fire("Error", "Error occured syncing to match", "error")
-        setCurrentTurn(data.currentTurn)
-        // setActiveGrid(data.activeGrid)
-        setGameBoard(data.board)
-        setPlayer(data.player)
+        if (typeof data.player === "string") setPlayer(data.player)
+        handleWebsocketUpdate(data)
         break
       case "chat":
         break
@@ -86,7 +94,7 @@ const Hard = () => {
       <p>
         <span style={{ color: player === "X" ? "red" : "blue" }}> {currentTurn === player ? "Your Turn" : "Not Your Turn"}</span>
       </p>
-      <Board gameBoard={gameBoard} activeGrid={activeGrid} websocketHandler={websocketHandler} />
+      <Board gameBoard={gameBoard} activeGrid={activeGrid} websocketHandler={websocketHandler} macroBoardMap={gameBoardStats.current} />
       <CopyButton player={player} roomID={params.get("room") ?? ""} />
     </div>
   )
