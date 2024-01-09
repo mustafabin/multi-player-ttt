@@ -32,7 +32,7 @@ const Hard = () => {
         winner: data.winner,
         tie: data.isDraw,
       })
-      return Swal.fire("Game Over", data.isDraw ? "Tie" : `${data.winner} won`, data.isDraw ? "info" : "success")
+      return Swal.fire("Game Over", data.isDraw ? "Tie" : `${data.winner} won`, data.isDraw ? "info" : data.winner === player ? "success" : "error")
     }
   }
   let handleMessage = (event: MessageEvent) => {
