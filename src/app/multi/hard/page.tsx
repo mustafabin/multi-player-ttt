@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Board from "./Board"
 import Swal from "sweetalert2"
+import copy from "copy-to-clipboard"
 const Hard = () => {
   const gameBoardStats = useRef(createInitialBoardStats())
   const socketRef = useRef<WebSocket | null>(null)
@@ -31,8 +32,8 @@ const Hard = () => {
         handleWebsocketUpdate(data)
         break
       case "assign":
-        if(!data.player) return Swal.fire("Error", "Error occured syncing to match", "error")
         console.log("assign", data)
+        if (!data.player) return Swal.fire("Error", "Error occured syncing to match", "error")
         setCurrentTurn(data.currentTurn)
         // setActiveGrid(data.activeGrid)
         setGameBoard(data.board)
@@ -50,17 +51,20 @@ const Hard = () => {
   useEffect(() => {
     const room = params.get("room")
     if (hasConnectedRef.current) {
-      return
+      console.log("already connected")
+    } else {
+      socketRef.current = new WebSocket(`ws://${API_URL}/join?room=${room}`)
+      const socket = socketRef.current
+      socket.onmessage = handleMessage
+      socket.onclose = (event) => console.log("closed", event)
+      socket.onopen = () => console.log("connected to server")
+      socket.onerror = () => Swal.fire("Error", "Error connecting to match", "error")
+      hasConnectedRef.current = true
     }
-    socketRef.current = new WebSocket(`ws://${API_URL}/join?room=${room}`)
-    const socket = socketRef.current
-    socket.onmessage = handleMessage
-    socket.onclose = (event) => console.log("closed", event)
-    socket.onopen = () => console.log("connected to server")
-    socket.onerror = () => Swal.fire("Error", "Error connecting to match", "error")
-    hasConnectedRef.current = true
 
     return () => {
+      console.log("trying to close socket")
+      const socket = socketRef.current
       if (socket && socket.readyState === WebSocket.OPEN) {
         console.log("closing socket")
         socket.close()
@@ -68,7 +72,7 @@ const Hard = () => {
       }
     }
   }, [])
-  let websocketHandler = (data:any) => {
+  let websocketHandler = (data: any) => {
     let socket = socketRef.current
     if (socket === null) return Swal.fire("Error", "Lost connection to match", "error")
     socket.send(JSON.stringify(data))
@@ -83,7 +87,31 @@ const Hard = () => {
         <span style={{ color: player === "X" ? "red" : "blue" }}> {currentTurn === player ? "Your Turn" : "Not Your Turn"}</span>
       </p>
       <Board gameBoard={gameBoard} activeGrid={activeGrid} websocketHandler={websocketHandler} />
+      <CopyButton player={player} roomID={params.get("room") ?? ""} />
     </div>
+  )
+}
+const CopyButton = ({ player, roomID }: { player: Player | undefined; roomID: string }) => {
+  const [copied, setCopied] = useState(false)
+  return (
+    <>
+      <div className='Hard-code'>
+        <p>
+          Room code: <span>{roomID}</span>
+        </p>
+        <button
+          onClick={() => {
+            copy(window.location.href, {
+              onCopy: () => {
+                setCopied(true)
+              },
+            })
+          }}
+          style={{ backgroundColor: player === "X" ? "rgb(84, 84, 255)" : "rgb(255, 74, 74)" }}>
+          {copied ? "Copied" : "Copy Link"}
+        </button>
+      </div>
+    </>
   )
 }
 export default Hard

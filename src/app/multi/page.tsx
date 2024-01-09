@@ -46,7 +46,7 @@ const MulitplayerNormal = () => {
     }
   }
   let handleWebsocketUpdate = (data: ResultType) => {
-    setGameBoard(data.board)
+    setGameBoard(data.board as string[][])
     setCurrentTurn(data.currentTurn)
     console.log("data", data)
     setIsOver({ isDraw: data.isDraw, winner: data.winner })
@@ -60,17 +60,19 @@ const MulitplayerNormal = () => {
   useEffect(() => {
     const room = params.get("room")
     if (hasConnectedRef.current) {
-      return
+      console.log("already connected")
+    } else {
+      socketRef.current = new WebSocket(`ws://${API_URL}/join?room=${room}`)
+      const socket = socketRef.current
+      socket.onclose = (event) => console.log("closed", event)
+      socket.onopen = handleSocketOpen
+      socket.onmessage = handleMessage
+      socket.onerror = () => Swal.fire("Error", "Error connecting to match", "error")
+      hasConnectedRef.current = true
     }
-    socketRef.current = new WebSocket(`ws://${API_URL}/join?room=${room}`)
-    const socket = socketRef.current
-    socket.onclose = (event) => console.log("closed", event)
-    socket.onopen = handleSocketOpen
-    socket.onmessage = handleMessage
-    socket.onerror = () => Swal.fire("Error", "Error connecting to match", "error")
-    hasConnectedRef.current = true
 
     return () => {
+      const socket = socketRef.current
       if (socket && socket.readyState === WebSocket.OPEN) {
         console.log("closing socket")
         socket.close()

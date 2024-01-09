@@ -158,7 +158,7 @@ const BottomButtons = () => {
     }).then((response) => {
       if (response.isConfirmed) {
         let roomID = response.value
-        router.push(`/multi?room=${roomID}`)
+        router.push(`/multi/hard?room=${roomID}`)
       }
     })
   }
