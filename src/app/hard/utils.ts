@@ -63,5 +63,5 @@ export type ResultType = {
   activeGrid?: number
 }
 export type roomTypes = "normal" | "hard"
-export const API_URL = "ttt-socket-server.onrender.com"
+export const API_URL = "ttt.binalhag.dev"
 export { createInitialBoard, createInitialBoardStats, checkDraw, convertMapToBoard, checkWinner }

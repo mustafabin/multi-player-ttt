@@ -7,7 +7,7 @@ export default function Home() {
     <div className='Home'>
       <header className='Home-header'>
         <h1>Tic-Tac-Tactics</h1>
-        <p>Choose your game mode: Classic or Ultimate Challenge.</p>
+        <p>Play 9-D Ultimate or Classic.</p>
       </header>
       <Image
         className='w-full max-w-xs h-auto mx-auto md:max-w-sm lg:max-w-md'
