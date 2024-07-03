@@ -1,11 +1,4 @@
-TTT
-
-Stream game data 
-*raw board info*
-*computed values*
-- [ ] Improve readabiltiy stats function names getMacroBoardFromMap
-- [ ] Display mini cell game status 
-     - [ ] Gray for draw
-     - [ ] Red / Blue for win
-
- - [ ] Undo / Redo for local player
+# todo
+1) coolify on hetzner server
+2) deploy real time api on hetzner 
+3) migrate ABATAX test resource use while on minium plan
